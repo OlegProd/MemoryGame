@@ -1,59 +1,90 @@
-console.log('Извините, немного не успеваю, завтра будет готово!');
-const cards = document.querySelectorAll('.block_image');
+const cards = document.querySelectorAll(".block_image");
+const text = document.querySelector(".text");
+let myStorage = window.localStorage;
 
 let hasFlippedCard = false;
-  let lockBoard = false;
-  let firstCard, secondCard;
+let lockBoard = false;
+let firstCard, secondCard;
+let win = 0;
+let score = 0;
+let steps = 0;
 
-  function flipCard() {
-    if (lockBoard) return;
-    if (this === firstCard) return;
+function flipCard(e) {
+  if (lockBoard) return;
+  if (this === firstCard) return;
 
-    this.classList.add('flip');
+  this.classList.add("flip");
 
-    if (!hasFlippedCard) {
-      hasFlippedCard = true;
-      firstCard = this;
-      return;
-    }
+  if (!hasFlippedCard) {
+    hasFlippedCard = true;
+    firstCard = this;
 
-    secondCard = this;
-    lockBoard = true;
-
-    checkForMatch();
+    return;
   }
 
-  function checkForMatch() {
-    let isMatch = firstCard.dataset.name === secondCard.dataset.name;
-    isMatch ? disableCards() : unflipCards();
+  secondCard = this;
+
+  checkForMatch();
+}
+
+function checkForMatch() {
+  console.log(firstCard.dataset.imgs);
+  let isMatch = firstCard.dataset.imgs === secondCard.dataset.imgs;
+  if (isMatch) {
+    disableCards();
+    win++;
+    score += 5;
+    localStorage.setItem("Score", score);
+    text.textContent = `Score: ${score}`;
+    console.log(win);
+  } else {
+    unflipCards();
+    steps += 1;
   }
 
-  function disableCards() {
-    firstCard.removeEventListener('click', flipCard);
-    secondCard.removeEventListener('click', flipCard);
-
-    resetBoard();
-  }
-
-  function unflipCards() {
+  if (win === 9) {
     setTimeout(() => {
-      firstCard.classList.remove('flip');
-      secondCard.classList.remove('flip');
-
-      resetBoard();
+      cards.forEach((elem) => elem.classList.remove("flip"));
+      text.textContent = `Score: ${score}, Steps: ${steps + win} - YOU WIN!!!`;
+      setTimeout(() => {
+        text.textContent = "Score: ";
+      }, 5000);
     }, 1500);
   }
+}
 
-  function resetBoard() {
-    [hasFlippedCard, lockBoard] = [false, false];
-    [firstCard, secondCard] = [null, null];
-  }
+function disableCards() {
+  firstCard.removeEventListener("click", flipCard);
+  secondCard.removeEventListener("click", flipCard);
 
- (function shuffle() {
-  cards.forEach(card => {
-    let ramdomPos = Math.floor(Math.random() * 18);
-    card.style.order = ramdomPos;
-   });
- })();
+  resetBoard();
+}
 
-  cards.forEach(card => card.addEventListener('click', flipCard));
+function unflipCards() {
+  lockBoard = true;
+
+  setTimeout(() => {
+    firstCard.classList.remove("flip");
+    secondCard.classList.remove("flip");
+
+    resetBoard();
+  }, 1500);
+}
+
+function resetBoard() {
+  [hasFlippedCard, lockBoard] = [false, false];
+  [firstCard, secondCard] = [null, null];
+}
+
+(function shuffle() {
+  cards.forEach((card) => {
+    let randomPos = Math.floor(Math.random() * 18);
+    card.style.order = randomPos;
+  });
+})();
+
+window.addEventListener("load", () => {
+  localStorage.getItem("Score");
+});
+
+cards.forEach((card) => card.addEventListener("click", flipCard));
